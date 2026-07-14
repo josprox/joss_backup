@@ -1,3 +1,0 @@
-// joss_backup entry point
-// Bridges the native Backup and BackupBuilder implementations.
-print("[joss_backup] Cargado plugin oficial de Backups y Respaldos.")
