@@ -1,0 +1,121 @@
+class Backup {
+    function create() {
+        return new BackupBuilder("create", "")
+    }
+
+    function restore($backup_id) {
+        return new BackupBuilder("restore", $backup_id)
+    }
+
+    function schedule() {
+        return new BackupBuilder("schedule", "")
+    }
+
+    function list($provider) {
+        return Plugin::call("joss_backup", "list", [$provider ?? "local"])
+    }
+
+    function delete($backup_id, $provider) {
+        return Plugin::call("joss_backup", "delete", [$backup_id, $provider ?? "local"])
+    }
+
+    function verify($backup_id, $provider, $password) {
+        return Plugin::call("joss_backup", "verify", [$backup_id, $provider ?? "local", $password ?? ""])
+    }
+
+    function testProvider($provider) {
+        return Plugin::call("joss_backup", "test_provider", [$provider])
+    }
+
+    function migrate($target, $token) {
+        return Plugin::call("joss_backup", "migrate", [$target, $token])
+    }
+}
+
+class BackupBuilder {
+    Init constructor($mode, $backup_id) {
+        $this->mode = $mode
+        $this->backup_id = $backup_id
+        $this->type_value = "full"
+        $this->provider_value = "local"
+        $this->encrypt_value = false
+        $this->password_value = ""
+        $this->at_value = "02:00"
+        $this->keep_value = 7
+    }
+
+    function full() {
+        $this->type_value = "full"
+        return $this
+    }
+
+    function files() {
+        $this->type_value = "files"
+        return $this
+    }
+
+    function database() {
+        $this->type_value = "database"
+        return $this
+    }
+
+    function differential() {
+        $this->type_value = "differential"
+        return $this
+    }
+
+    function incremental() {
+        $this->type_value = "incremental"
+        return $this
+    }
+
+    function provider($provider) {
+        $this->provider_value = $provider
+        return $this
+    }
+
+    function password($password) {
+        $this->password_value = $password
+        return $this
+    }
+
+    function at($at) {
+        $this->at_value = $at
+        return $this
+    }
+
+    function daily() {
+        return $this
+    }
+
+    function keep($keep) {
+        $this->keep_value = $keep
+        return $this
+    }
+
+    function encrypt($enabled) {
+        $this->encrypt_value = $enabled ?? true
+        return $this
+    }
+
+    function run() {
+        return Plugin::call("joss_backup", "run", [$this->options()])
+    }
+
+    function save() {
+        return Plugin::call("joss_backup", "schedule", [$this->options()])
+    }
+
+    function options() {
+        return {
+            "mode": $this->mode,
+            "backup_id": $this->backup_id,
+            "type": $this->type_value,
+            "provider": $this->provider_value,
+            "encrypt": $this->encrypt_value,
+            "password": $this->password_value,
+            "at": $this->at_value,
+            "keep": $this->keep_value
+        }
+    }
+}
